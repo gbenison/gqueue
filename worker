@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd `dirname $0`/..
+cd `dirname $0`/../..
 
 # read configuration variables, after setting defaults
 n_tries=infinite           # Number of tries to attempt to run a job; integer or 'infinite'

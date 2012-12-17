@@ -1,0 +1,7 @@
+#!/bin/sh
+
+RUNSVDIR=/usr/bin/runsvdir
+
+cd `dirname $0`;
+
+runsvdir -P workers
