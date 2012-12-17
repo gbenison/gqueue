@@ -1,0 +1,7 @@
+# Configuration variables for gqueue.
+# Use bash variable syntax; foo=bar
+n_tries=infinite           # Number of tries to attempt to run a job; integer or 'infinite'
+start_delay=0              # delay (seconds) before the first attempt to start a job
+idle_delay=$((10 * 60))    # delay (seconds) when there are no jobs waiting
+restart_delay=$((5 * 60))  # delay (seconds) before restarting a failed job
+

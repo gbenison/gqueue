@@ -1,0 +1,18 @@
+gqueue: Process jobs in a queue, with option to retry failures, 'n' at a time
+
+Using
+=====
+
+Run `gqueue-setup` in your work directory.  Place jobs to run in the "IN"
+directory.  Each job must be an executable.  Jobs will be run with no arguments
+in the lexical order of their names.
+
+In the work directory, you will find these files/directories:
+
+  IN           -- jobs waiting to run
+  RUNNING      -- jobs currently running
+  DONE         -- jobs that succeeded
+  FAILED       -- jobs that failed to succeed within the number of retries allowed
+  log          -- the stdout and stderr streams from jobs
+
+

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# copy default configuration file to target dir
+cp `dirname $0`/config .;
+
+# set up control directories
+for d in IN RUNNING DONE FAILED log workers; do
+    test -d $d || mkdir $d;
+done
+
+
+
