@@ -14,9 +14,9 @@ lockfile ./lockfile;
 ungrabbed_queues=`for q in queues/*; do test -f $q/OWNER || echo $q/IN; done`;
 
 # grab a job; sleep if none found
-job_fname=`find $ungrabbed_queues -type f -exec basename {} \; | sort | head -1`;
-if [[ "x${job_fname}" != "x" ]]; then
-  job_path=`find $ungrabbed_queues -name $job_fname | head -1`;
+job_path=`find $ungrabbed_queues -follow -type f | sort --field-separator='/' -k4,4 | head -1`;
+if [[ "x${job_path}" != "x" ]]; then
+  job_fname=`basename ${job_path}`;
   job_dir=`dirname $job_path`/..;
 
   owner_file=${job_dir}/OWNER;
@@ -34,8 +34,10 @@ test "x$job_fname" = "x" && { sleep $idle_delay; } || {
     # There's a job ready; run it
     sleep $start_delay;
     while test "$n_tries" != "0"; do
+	args="";
+	test -f ${job_dir}/ARGS && args=`cat ${job_dir}/ARGS`;
 	echo "======= Start: `date` ==========" >> $logfile;
-	${job_dir}/RUNNING/${job_fname} >> $logfile 2>&1 && break;
+	${job_dir}/RUNNING/${job_fname} $args >> $logfile 2>&1 && break;
 	sleep $restart_delay;
 	test "$n_tries" = "infinite" || n_tries=$((n_tries - 1));
     done
