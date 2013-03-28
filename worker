@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd `dirname $0`/../..
+cd `dirname $0`/../.. ;
 
 # read configuration variables, after setting defaults
 n_tries=infinite           # Number of tries to attempt to run a job; integer or 'infinite'
@@ -11,14 +11,23 @@ test -f ./config && { . ./config; }
 
 lockfile ./lockfile;
 
-# grab a job; sleep if none found
-job_fname=`find IN -type f | sort | head -1`;
+ungrabbed_queues=`for q in queues/*; do test -f $q/OWNER || echo $q/IN; done`;
 
-test "x$job_fname" = "x" || { mv $job_fname RUNNING; job_fname=`basename "$job_fname"`; }
+# grab a job; sleep if none found
+job_fname=`find $ungrabbed_queues -type f -exec basename {} \; | sort | head -1`;
+if [[ "x${job_fname}" != "x" ]]; then
+  job_path=`find $ungrabbed_queues -name $job_fname | head -1`;
+  job_dir=`dirname $job_path`/..;
+
+  owner_file=${job_dir}/OWNER;
+  echo $$ > ${owner_file};
+
+  mv $job_path ${job_dir}/RUNNING;
+fi
 
 rm -f ./lockfile;
 
-logfile=log/${job_fname}
+logfile=${job_dir}/log/${job_fname}
 
 ## empty job? wait & terminate; else continue
 test "x$job_fname" = "x" && { sleep $idle_delay; } || {
@@ -26,16 +35,18 @@ test "x$job_fname" = "x" && { sleep $idle_delay; } || {
     sleep $start_delay;
     while test "$n_tries" != "0"; do
 	echo "======= Start: `date` ==========" >> $logfile;
-	./RUNNING/${job_fname} >> $logfile 2>&1 && break;
+	${job_dir}/RUNNING/${job_fname} >> $logfile 2>&1 && break;
 	sleep $restart_delay;
 	test "$n_tries" = "infinite" || n_tries=$((n_tries - 1));
     done
 
     test "$n_tries" = "0" && { 
        echo "========== FAIL ===========" >> $logfile;
-       mv RUNNING/${job_fname} FAILED;
+       mv ${job_dir}/RUNNING/${job_fname} ${job_dir}/FAILED;
     } || { 
        echo "======== End: `date` ======" >> $logfile;
-       mv RUNNING/${job_fname} DONE;
+       mv ${job_dir}/RUNNING/${job_fname} ${job_dir}/DONE;
     }
+
+    rm ${owner_file};
 }

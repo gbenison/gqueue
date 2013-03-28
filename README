@@ -1,18 +1,39 @@
-gqueue: Process jobs in a queue, with option to retry failures, 'n' at a time
+gqueue: Process jobs in a queue, with option to retry failures,
+        one from each class at a time, up to 'n' at a time
 
 Using
 =====
 
-Run `gqueue-setup` in your work directory.  Place jobs to run in the "IN"
-directory.  Each job must be an executable.  Jobs will be run with no arguments
-in the lexical order of their names.
+1) Choose the names for your job classes.  Only one job from each class will
+run at a time.  In the directory where you would like the queues to be set up, run:
 
-In the work directory, you will find these files/directories:
+gqueue-setup <class 1> <class 2> ...
 
-  IN           -- jobs waiting to run
-  RUNNING      -- jobs currently running
-  DONE         -- jobs that succeeded
-  FAILED       -- jobs that failed to succeed within the number of retries allowed
-  log          -- the stdout and stderr streams from jobs
+If you want to add more job classes later, you can do so with 'make-new-classes'.
+
+2) Execute the 'start' script to begin the worker processes.  Jobs will begin as soon
+as the input queues are populated.  A "job" is any executable file (symlinks to
+executables are OK).  A job placed in <class>/IN will begin running as soon as
+no other job is running in that class and the total number of running jobs does not
+exceed the number of workers (8 by default).
+
+When a job is picked up to run, its executable will be moved from the IN directory
+to the RUNNING directory.  When it finishes, it will be moved to the DONE directory
+if it returned a zero exit status.  If it returns non-zero, it will be retried
+a configurable number of times (see the 'config' file) and then finally placed in
+the FAILED directory if it does not succeed.
+
+The stdout and stderr of each job are combined and redirected to a file
+<class>/log/<jobname>  where "jobname" is the name of the job executable.
+
+ARGS
+====
+
+It is possible to supply command-line arguments to a job by placing a file called
+'ARGS' in a job class directory.  (i.e. <class>/ARGS).  The contents of this file
+are copied verbatim when running the job.  This is useful, for example, when
+running the same executable in multiple classes, with slightly different behavior
+depending on what class it is run in.
+
 
 

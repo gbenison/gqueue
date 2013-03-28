@@ -1,6 +1,7 @@
 #!/bin/sh
 
 SRCDIR=`dirname $0`;
+CLASSES=$@;
 
 # FIXME this should be customizable
 n_workers=8;
@@ -12,12 +13,17 @@ test -f ./config || cp ${SRCDIR}/config .;
 cp ${SRCDIR}/start .;
 chmod +x start;
 
-# set up control directories
-for d in IN RUNNING DONE FAILED log workers; do
-    test -d $d || mkdir $d;
+# set up input queues
+for class in $CLASSES;
+do
+  for d in IN RUNNING STAGED DONE FAILED log;
+  do
+    mkdir -p queues/${class}/$d;
+  done
 done
 
 # set up workers
+mkdir workers;
 for i in `seq 1 $n_workers`; do
     mkdir workers/$i;
     cp ${SRCDIR}/worker workers/$i/run;
