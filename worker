@@ -9,27 +9,14 @@ idle_delay=$((10 * 60))    # delay (seconds) when there are no jobs waiting
 restart_delay=$((5 * 60))  # delay (seconds) before restarting a failed job
 test -f ./config && { . ./config; }
 
-# grab lock..
-# pick file name
-# no file name: idle_delay and exit
-# file name: copy to RUN
-# unlock
-# for (n_tries):
-# run job
-# if passed:
-#   move job to DONE
-#   exit
-# move job to FAILED
+lockfile ./lockfile;
 
-job_fname=`(
-  flock 9;
+# grab a job; sleep if none found
+job_fname=`find IN -type f | sort | head -1`;
 
-  # grab a job; sleep if none found
-  job_fname=\`find IN -type f | sort | head -1\`;
+test "x$job_fname" = "x" || { mv $job_fname RUNNING; job_fname=`basename "$job_fname"`; }
 
-  test "x$job_fname" = "x" || { mv $job_fname RUNNING; basename $job_fname; }
-
-) 9>lockfile`
+rm -f ./lockfile;
 
 logfile=log/${job_fname}
 
@@ -40,6 +27,7 @@ test "x$job_fname" = "x" && { sleep $idle_delay; } || {
     while test "$n_tries" != "0"; do
 	echo "======= Start: `date` ==========" >> $logfile;
 	./RUNNING/${job_fname} >> $logfile 2>&1 && break;
+	sleep $restart_delay;
 	test "$n_tries" = "infinite" || n_tries=$((n_tries - 1));
     done
 

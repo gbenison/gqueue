@@ -6,7 +6,7 @@ SRCDIR=`dirname $0`;
 n_workers=8;
 
 # copy default configuration file to working directory
-cp ${SRCDIR}/config .;
+test -f ./config || cp ${SRCDIR}/config .;
 
 # copy control scripts to working directory
 cp ${SRCDIR}/start .;

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-RUNSVDIR=/usr/bin/runsvdir
+export PATH=$PATH:/sbin;
 
 cd `dirname $0`;
 
