@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SRCDIR=`dirname $0`;
+CLASSES=$@;
+
+# set up input queues
+for class in $CLASSES;
+do
+  for d in IN RUNNING STAGED DONE FAILED log;
+  do
+    mkdir -p queues/${class}/$d;
+  done
+done

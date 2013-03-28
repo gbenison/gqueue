@@ -10,7 +10,7 @@ n_workers=8;
 test -f ./config || cp ${SRCDIR}/config .;
 
 # copy control scripts to working directory
-for cmd in start pause ;
+for cmd in start pause make-new-classes ;
 do
   cp ${SRCDIR}/${cmd} .;
   chmod +x ${cmd};
