@@ -1,17 +1,32 @@
 #!/bin/sh
 
-cd `dirname $0`/../.. ;
+ROOTDIR=`dirname $0`/../.. ;
+ROOTDIR=`readlink -f ${ROOTDIR}`;
+cd $ROOTDIR;
 
 # read configuration variables, after setting defaults
 n_tries=infinite           # Number of tries to attempt to run a job; integer or 'infinite'
 start_delay=0              # delay (seconds) before the first attempt to start a job
 idle_delay=$((10 * 60))    # delay (seconds) when there are no jobs waiting
 restart_delay=$((5 * 60))  # delay (seconds) before restarting a failed job
+pause_delay=60             # sleep time while the queue is paused
 test -f ./config && { . ./config; }
+
+pause_while_paused() {
+  while test -f ${ROOTDIR}/PAUSED ;
+  do
+    sleep $pause_delay;
+  done
+}
+
+pause_while_paused ;
 
 lockfile ./lockfile;
 
 ungrabbed_queues=`for q in queues/*; do test -f $q/OWNER || echo $q/IN; done`;
+
+# nothing to do if there are no ungrabbed queues.
+test "x$ungrabbed_queues" = "x" && { rm -f ./lockfile ; sleep $idle_delay ; exit 0 ; }
 
 # grab a job; sleep if none found
 job_path=`find $ungrabbed_queues -follow -type f | sort --field-separator='/' -k4,4 | head -1`;
@@ -34,6 +49,7 @@ test "x$job_fname" = "x" && { sleep $idle_delay; } || {
     # There's a job ready; run it
     sleep $start_delay;
     while test "$n_tries" != "0"; do
+	pause_while_paused ;
 	args="";
 	test -f ${job_dir}/ARGS && args=`cat ${job_dir}/ARGS`;
 	echo "======= Start: `date` ==========" >> $logfile;

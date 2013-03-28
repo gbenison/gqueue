@@ -10,8 +10,11 @@ n_workers=8;
 test -f ./config || cp ${SRCDIR}/config .;
 
 # copy control scripts to working directory
-cp ${SRCDIR}/start .;
-chmod +x start;
+for cmd in start pause ;
+do
+  cp ${SRCDIR}/${cmd} .;
+  chmod +x ${cmd};
+done
 
 # set up input queues
 for class in $CLASSES;

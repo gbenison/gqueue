@@ -1,0 +1,9 @@
+#!/bin/sh
+
+DESTDIR=`dirname $0`;
+
+cat <<EOF > ${DESTDIR}/PAUSED
+** jobs will not start or restart while this file is present **
+** delete me to restart **
+EOF
+
